@@ -1,6 +1,6 @@
 # How to Add Authentication with Google Authenticator in Node.js
 
-Code for How to Add Authentication with Google Authenticator in Node.js tutorial
+Code for [How to Add Authentication with Google Authenticator in Node.js tutorial](https://blog.shahednasser.com/how-to-add-authentication-with-google-authenticator-in-node-js/)
 
 ## Installation
 
