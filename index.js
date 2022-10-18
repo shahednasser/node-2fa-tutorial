@@ -6,25 +6,19 @@ const QRCode = require('qrcode')
 const jwt = require('jsonwebtoken')
 const expressJWT = require('express-jwt')
 const bodyParser = require('body-parser')
+const config = require('config');
+
+const port = config.get('app.port');
+const appname = config.get('app.name');
+const sesCrypter = config.get('app.sesCrypter');
+const codeCrypter = config.get('app.codeCrypter');
+
 const app = express()
-const port = 3000
 
 app.set('view engine', 'ejs')
 
-function makeid(length) {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
-
-const appSec = makeid(50);
-
 app.use(session({
-    secret: makeid(50),
+    secret: sesCrypter,
     resave: true,
     saveUninitialized: true
 }));
@@ -49,7 +43,7 @@ app.post('/sign-up', (req, res) => {
         }
 
         //generate qr and put it in session
-        QRCode.toDataURL(authenticator.keyuri(email, 'MPSoft', secret), (err, url) => {
+        QRCode.toDataURL(authenticator.keyuri(email, appname, secret), (err, url) => {
           if (err) {
             throw err
           }
@@ -82,7 +76,7 @@ app.post('/sign-up-2fa', (req, res) => {
 })
 
 const jwtMiddleware = expressJWT({
-  secret: appSec,
+  secret: codeCrypter,
   algorithms: ['HS256'],
   getToken: (req) => {
     return req.session.token
@@ -131,7 +125,7 @@ function verifyLogin (email, code, req, res, failUrl) {
         //correct, add jwt to session
         req.session.qr = null
         req.session.email = null
-        req.session.token = jwt.sign(email, appSec)
+        req.session.token = jwt.sign(email, codeCrypter)
 
         //redirect to "private" page
         return res.redirect('/private')
@@ -146,7 +140,6 @@ db.serialize(() => {
 })
 db.close()
 
-
 app.listen(port, () => {
-  console.log(`MFA/2FA listening on ${port}`)
+  console.log(`${appname} listening on ${port}`)
 })
