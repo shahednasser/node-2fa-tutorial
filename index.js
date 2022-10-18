@@ -11,10 +11,23 @@ const port = 3000
 
 app.set('view engine', 'ejs')
 
-app.use(session({
-  secret: 'supersecret',
-}))
+function makeid(length) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
 
+const appSec = makeid(50);
+
+app.use(session({
+    secret: makeid(50),
+    resave: true,
+    saveUninitialized: true
+}));
 
 app.use(bodyParser.urlencoded({ extended: false }))
 
@@ -36,7 +49,7 @@ app.post('/sign-up', (req, res) => {
         }
 
         //generate qr and put it in session
-        QRCode.toDataURL(authenticator.keyuri(email, '2FA Node App', secret), (err, url) => {
+        QRCode.toDataURL(authenticator.keyuri(email, 'MPSoft', secret), (err, url) => {
           if (err) {
             throw err
           }
@@ -69,7 +82,7 @@ app.post('/sign-up-2fa', (req, res) => {
 })
 
 const jwtMiddleware = expressJWT({
-  secret: 'supersecret',
+  secret: appSec,
   algorithms: ['HS256'],
   getToken: (req) => {
     return req.session.token
@@ -98,32 +111,32 @@ app.get('/logout', jwtMiddleware, (req, res) => {
 })
 
 function verifyLogin (email, code, req, res, failUrl) {
-  //load user by email
-  const db = new sqlite3.Database('db.sqlite')
-  db.serialize(() => {
-    db.get('SELECT secret FROM users WHERE email = ?', [email], (err, row) => {
-      if (err) {
-        throw err
-      }
+    //load user by email
+    const db = new sqlite3.Database('db.sqlite')
+    db.serialize(() => {
+      db.get('SELECT secret FROM users WHERE email = ?', [email], (err, row) => {
+        if (err) {
+          throw err
+        }
 
-      if (!row) {
-        return res.redirect('/')
-      }
+        if (!row) {
+          return res.redirect('/')
+        }
 
-      if (!authenticator.check(code, row.secret)) {
-        //redirect back
-        return res.redirect(failUrl)
-      }
+        if (!authenticator.check(code, row.secret)) {
+          //redirect back
+          return res.redirect(failUrl)
+        }
 
-      //correct, add jwt to session
-      req.session.qr = null
-      req.session.email = null
-      req.session.token = jwt.sign(email, 'supersecret')
+        //correct, add jwt to session
+        req.session.qr = null
+        req.session.email = null
+        req.session.token = jwt.sign(email, appSec)
 
-      //redirect to "private" page
-      return res.redirect('/private')
+        //redirect to "private" page
+        return res.redirect('/private')
+      })
     })
-  })
 }
 
 //create database with tables if it doesn't exist
@@ -133,6 +146,7 @@ db.serialize(() => {
 })
 db.close()
 
+
 app.listen(port, () => {
-  console.log(`2FA Node app listening at http://localhost:${port}`)
+  console.log(`MFA/2FA listening on ${port}`)
 })
