@@ -32,3 +32,6 @@ docker build . -t mfa
 ```bash
 docker run -p 3000:3000 -d mfa
 ```
+The server will run at port 3000 if you do not change
+* config/default.json
+* Dockerfile (expose port)
