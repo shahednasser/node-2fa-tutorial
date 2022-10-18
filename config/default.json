@@ -1,0 +1,8 @@
+{
+    "app": {
+      "name": "MFA APP 2FA App name",
+      "port": 3000,
+      "sesCrypter": "myverysecuresecuritycode1",
+      "codeCrypter": "myverysecuresecuritycode2"
+    }
+  }
