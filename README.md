@@ -18,4 +18,17 @@ Run the server with the following command:
 npm start
 ```
 
-The server will run at `localhost:3000`.
+The server will run at port 3000 if you do not change the config/default.json
+
+
+## Create docker container
+
+### Build and tag (eg: mfa)
+```bash
+docker build . -t mfa
+```
+
+### Start the MFA Docker image
+```bash
+docker run -p 3000:3000 -d mfa
+```
