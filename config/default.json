@@ -1,0 +1,8 @@
+{
+    "app": {
+      "name": "MFA/2FA NodeAPP",
+      "port": 3000,
+      "sesCrypter": "mysupersecret",
+      "codeCrypter": "mysupersupersecret"
+    }
+  }
